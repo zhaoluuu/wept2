@@ -6,7 +6,9 @@ var json = require('../package.json')
 var UpdateNotifier = require('update-notifier').UpdateNotifier
 var fs = require('fs')
 var open = require('open')
+//终端字符串样式
 var chalk = require('chalk')
+//net 模块提供了创建基于流的 TCP 或 [IPC][] 服务器([net.createServer()][])和客户端([net.createConnection()][]) 的异步网络 API。
 var net = require('net')
 var boxen = require('boxen')
 
@@ -20,7 +22,7 @@ program.version(json.version + ' 140900')
 program.parse(process.argv)
 
 if (program.list) {
-  open('https://chemzqm.github.io/wept/#/history')
+  open('https://github.com/zhaoluuu/wept2')
   process.exit()
 }
 
@@ -47,58 +49,62 @@ var notifier = new UpdateNotifier({
 notifier.check()
 
 
-// var folder = program.args[0]
-// if (folder) {
-//   var stats
-//   try {
-//     stats = fs.statSync(folder)
-//   } catch(e) {}
-//   if (!stats || !stats.isDirectory()) {
-//     console.log('指定目录不存在或者不是目录，请检查')
-//     process.exit()
-//   }
-//   try {
-//     process.chdir(folder)
-//   } catch(err) {
-//     console.log('切换目录失败: ' + err)
-//   }
-// }
+var folder = program.args[0]
+if (folder) {
+  var stats
+  try {
+    stats = fs.statSync(folder)
+  } catch(e) {}
+  if (!stats || !stats.isDirectory()) {
+    console.log('指定目录不存在或者不是目录，请检查')
+    process.exit()
+  }
+  try {
+    //process.chdir() 方法会更改 Node.js 进程的当前工作目录
+    process.chdir(folder)
+  } catch(err) {
+    console.log('切换目录失败: ' + err)
+  }
+}
 
-// if (!fs.existsSync('./app.json')) {
-//   console.log(chalk.red('无法找到 app.json 文件，请检查'))
-//   process.exit()
-// }
+if (!fs.existsSync('./app.json')) {
+  console.log(chalk.red('无法找到 app.json 文件，请检查'))
+  process.exit()
+}
 
-// var server = require('../build/server')
-// var startPort = 3000
+var server = require('../build/server')
+var startPort = 3000
 
-// getPort(function (port) {
-//   if (os.platform() == 'darwin' && program.open) {
-//     exec('osascript chrome.scpt ' + port, {cwd: __dirname}, function () { })
-//   }
-//   server.listen(port, function () {
-//     console.log('listening on port ' + port)
-//   })
-// })
+getPort(function (port) {
+  //mac端
+  if (os.platform() == 'darwin' && program.open) {
+    exec('osascript chrome.scpt ' + port, {cwd: __dirname}, function () { })
+  }
+  server.listen(port, function () {
+    console.log('listening on port ' + port)
+  })
+})
 
-// function getPort(cb) {
-//   if (program.port) return cb(program.port)
-//   var port = startPort
+function getPort(cb) {
+  //用户指定了服务端口
+  if (program.port) return cb(program.port)
+  var port = startPort
 
-//   var server = net.createServer()
-//   server.listen(port, function () {
-//     server.once('close', function () {
-//       cb(port)
-//     })
-//     server.close()
-//   })
-//   server.on('error', function () {
-//     startPort += 1
-//     getPort(cb)
-//   })
-// }
+  var server = net.createServer()
+  server.listen(port, function () {
+    //一旦 socket 完全关闭就发出该事件。
+    server.once('close', function () {
+      cb(port)
+    })
+    server.close()
+  })
+  server.on('error', function () {
+    startPort += 1
+    getPort(cb)
+  })
+}
 
-// process.on('uncaughtException', function (e) {
-//   console.log(chalk.red('发生了未知错误'))
-//   console.error(e.stack)
-// })
+process.on('uncaughtException', function (e) {
+  console.log(chalk.red('发生了未知错误'))
+  console.error(e.stack)
+})
